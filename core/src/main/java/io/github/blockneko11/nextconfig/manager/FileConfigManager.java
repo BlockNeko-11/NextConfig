@@ -159,9 +159,17 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
             }
 
             // modifier
-            int i = f.getModifiers();
+            int mod = f.getModifiers();
+            boolean hasAnyIgnoredModifiers = false;
 
-            if (Modifier.isStatic(i) || Modifier.isFinal(i) || Modifier.isTransient(i)) {
+            for (int i : this.options.common_ignoredModifiers) {
+                if ((mod & i) != 0) {
+                    hasAnyIgnoredModifiers = true;
+                    break;
+                }
+            }
+
+            if (hasAnyIgnoredModifiers) {
                 continue;
             }
 

@@ -30,7 +30,7 @@ public final class PropertiesSerializer implements ConfigSerializer {
     public String serialize(Map<String, Object> conf) {
         try (StringWriter sw = new StringWriter()) {
             Properties prop = new Properties();
-            conf.forEach((key, value) -> prop.setProperty(key, value.toString()));
+            conf.forEach((k, v) -> prop.setProperty(k, v.toString()));
             prop.store(sw, null);
             return sw.toString();
         } catch (IOException e) {
