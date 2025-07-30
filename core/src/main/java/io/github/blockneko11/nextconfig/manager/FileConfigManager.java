@@ -162,7 +162,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
             int mod = f.getModifiers();
             boolean hasAnyIgnoredModifiers = false;
 
-            for (int i : this.options.common_ignoredModifiers) {
+            for (int i : this.options.ignoreModifiers) {
                 if ((mod & i) != 0) {
                     hasAnyIgnoredModifiers = true;
                     break;

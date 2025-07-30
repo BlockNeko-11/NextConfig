@@ -7,7 +7,7 @@ import java.util.List;
 public class ConfigOptions {
     public static final ConfigOptions DEFAULT = new ConfigOptions();
 
-    public List<Integer> common_ignoredModifiers = Arrays.asList(
+    public List<Integer> ignoreModifiers = Arrays.asList(
             Modifier.STATIC,
             Modifier.FINAL,
             Modifier.TRANSIENT
