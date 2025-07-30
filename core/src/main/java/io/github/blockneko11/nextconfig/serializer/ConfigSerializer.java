@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface ConfigSerializer {
     @Nullable
-    Map<String, Object> read(String text);
+    Map<String, Object> parse(String text);
 
-    String write(Map<String, Object> conf);
+    String serialize(Map<String, Object> conf);
 }

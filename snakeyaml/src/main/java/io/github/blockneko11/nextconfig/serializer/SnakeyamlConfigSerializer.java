@@ -21,12 +21,12 @@ public final class SnakeyamlConfigSerializer implements ConfigSerializer {
     }
 
     @Override
-    public Map<String, Object> read(String text) {
+    public Map<String, Object> parse(String text) {
         return this.yaml.load(text);
     }
 
     @Override
-    public String write(Map<String, Object> conf) {
+    public String serialize(Map<String, Object> conf) {
         return this.yaml.dumpAs(conf, Tag.MAP, null);
     }
 }
