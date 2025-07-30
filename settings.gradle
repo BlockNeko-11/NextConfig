@@ -1,0 +1,12 @@
+def subprojectDirs = [
+        ":core",
+        ":example",
+        ":gson",
+        ":snakeyaml"
+]
+
+subprojectDirs.each {
+    include it
+}
+
+rootProject.name = "NextConfig"
