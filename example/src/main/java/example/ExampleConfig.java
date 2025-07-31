@@ -31,6 +31,12 @@ public final class ExampleConfig {
 
     public String a_null = null;
 
+    public State a_enum = State.ON;
+
+    public enum State {
+        ON, OFF
+    }
+
     public ExampleConfig() {
         this.a_map = new LinkedHashMap<>();
         this.a_map.put("key1", "value1");

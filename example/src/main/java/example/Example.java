@@ -34,6 +34,7 @@ public final class Example {
         System.out.println(config1.ignored_field);
         System.out.println(config1.b_string);
         System.out.println(config1.a_null);
+        System.out.println(config1.a_enum);
 
         config1.a_boolean = false;
         config1.an_int = 114514;
@@ -43,6 +44,9 @@ public final class Example {
         config1.a_map = new LinkedHashMap<>();
         config1.a_map.put("key", "value");
         config1.ignored_field = "This field will not be ignored";
+        config1.b_string = "This string will not be serialized as 'b_string'";
+        config1.a_null = null;
+        config1.a_enum = ExampleConfig.State.OFF;
 
         // save
         holder.save();
@@ -59,6 +63,7 @@ public final class Example {
         System.out.println(config2.ignored_field);
         System.out.println(config2.b_string);
         System.out.println(config2.a_null);
+        System.out.println(config2.a_enum);
 
         holder.save();
     }

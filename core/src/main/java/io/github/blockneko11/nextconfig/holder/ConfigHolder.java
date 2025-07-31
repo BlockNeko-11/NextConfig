@@ -157,6 +157,11 @@ public class ConfigHolder<T> {
                     continue;
                 }
 
+                if (fType.isEnum()) {
+                    f.set(instance, Enum.valueOf((Class<Enum>) fType, (String) value));
+                    continue;
+                }
+
                 Object o = mapToObject(fType, (Map<String, Object>) value, options);
                 f.set(instance, o);
             } catch (IllegalAccessException e) {
@@ -200,7 +205,14 @@ public class ConfigHolder<T> {
                 f.setAccessible(true);
             }
 
+            Class<?> fType = f.getType();
+
             try {
+                if (fType.isEnum()) {
+                    map.put(key, ((Enum<?>) f.get(object)).toString());
+                    continue;
+                }
+
                 map.put(key, f.get(object));
             } catch (IllegalAccessException e) {
                 throw new ConfigMappingException(e);
