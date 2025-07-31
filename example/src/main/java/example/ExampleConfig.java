@@ -1,8 +1,8 @@
 package example;
 
 import io.github.blockneko11.nextconfig.Config;
-import io.github.blockneko11.nextconfig.annotation.SerializeIgnored;
-import io.github.blockneko11.nextconfig.annotation.SerializedName;
+import io.github.blockneko11.nextconfig.annotation.PropertyIgnored;
+import io.github.blockneko11.nextconfig.annotation.PropertyName;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -22,10 +22,10 @@ public final class ExampleConfig implements Config {
 
     public Map<String, String> a_map;
 
-    @SerializeIgnored
+    @PropertyIgnored
     public String ignored_field = "This field will be ignored";
 
-    @SerializedName("str_b")
+    @PropertyName("str_b")
     public String b_string = "This string will be serialized as 'str_b'";
 
     public ExampleConfig() {

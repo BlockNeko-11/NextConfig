@@ -1,8 +1,8 @@
 package io.github.blockneko11.nextconfig.manager;
 
 import io.github.blockneko11.nextconfig.Config;
-import io.github.blockneko11.nextconfig.annotation.SerializeIgnored;
-import io.github.blockneko11.nextconfig.annotation.SerializedName;
+import io.github.blockneko11.nextconfig.annotation.PropertyIgnored;
+import io.github.blockneko11.nextconfig.annotation.PropertyName;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 import io.github.blockneko11.nextconfig.util.FileUtils;
 import io.github.blockneko11.nextconfig.util.ReflectionUtils;
@@ -10,7 +10,6 @@ import io.github.blockneko11.nextconfig.util.ReflectionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -62,7 +61,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
 
         for (Field f : this.clazz.getDeclaredFields()) {
             // annotation
-            if (f.isAnnotationPresent(SerializeIgnored.class)) {
+            if (f.isAnnotationPresent(PropertyIgnored.class)) {
                 continue;
             }
 
@@ -87,7 +86,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
             }
 
             // serialized name
-            SerializedName sName = f.getAnnotation(SerializedName.class);
+            PropertyName sName = f.getAnnotation(PropertyName.class);
             String name = sName != null ? sName.value() : f.getName();
 
             if (this.options.parse_nameIgnoreCase) {
@@ -162,7 +161,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
         Map<String, Object> map = new LinkedHashMap<>();
         for (Field f : this.clazz.getDeclaredFields()) {
             // annotation
-            if (f.isAnnotationPresent(SerializeIgnored.class)) {
+            if (f.isAnnotationPresent(PropertyIgnored.class)) {
                 continue;
             }
 
@@ -187,7 +186,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
             }
 
             // serialized name
-            SerializedName sName = f.getAnnotation(SerializedName.class);
+            PropertyName sName = f.getAnnotation(PropertyName.class);
             String name = sName != null ? sName.value() : f.getName();
 
             // put
