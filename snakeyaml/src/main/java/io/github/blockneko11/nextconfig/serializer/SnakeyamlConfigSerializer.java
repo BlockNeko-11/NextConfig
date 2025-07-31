@@ -1,5 +1,6 @@
 package io.github.blockneko11.nextconfig.serializer;
 
+import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -21,12 +22,13 @@ public final class SnakeyamlConfigSerializer implements ConfigSerializer {
     }
 
     @Override
-    public Map<String, Object> read(String text) {
+    public Map<String, Object> parse(String text) {
         return this.yaml.load(text);
     }
 
+    @NotNull
     @Override
-    public String write(Map<String, Object> conf) {
+    public String serialize(Map<String, Object> conf) {
         return this.yaml.dumpAs(conf, Tag.MAP, null);
     }
 }

@@ -1,13 +1,12 @@
 package example;
 
 import io.github.blockneko11.nextconfig.serializer.GsonConfigSerializer;
+import io.github.blockneko11.nextconfig.throwable.ConfigException;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
 
 public class ExampleGsonTest {
     @Test
-    public void file() throws IOException {
+    public void file() throws ConfigException {
         Example.file(GsonConfigSerializer.DEFAULT, "json");
     }
 }

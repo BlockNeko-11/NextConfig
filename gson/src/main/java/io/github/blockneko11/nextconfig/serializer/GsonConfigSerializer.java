@@ -3,8 +3,8 @@ package io.github.blockneko11.nextconfig.serializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.Map;
 
 public final class GsonConfigSerializer implements ConfigSerializer {
@@ -25,7 +25,7 @@ public final class GsonConfigSerializer implements ConfigSerializer {
     }
 
     @Override
-    public Map<String, Object> read(String text) {
+    public Map<String, Object> parse(String text) {
         try {
             return (Map<String, Object>) this.gson.fromJson(text, Map.class);
         } catch (JsonSyntaxException e) {
@@ -33,8 +33,9 @@ public final class GsonConfigSerializer implements ConfigSerializer {
         }
     }
 
+    @NotNull
     @Override
-    public String write(Map<String, Object> conf) {
+    public String serialize(Map<String, Object> conf) {
         return this.gson.toJson(conf);
     }
 }

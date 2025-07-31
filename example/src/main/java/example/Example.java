@@ -1,53 +1,30 @@
 package example;
 
-import io.github.blockneko11.nextconfig.manager.FileConfigManager;
-import io.github.blockneko11.nextconfig.manager.MemoryConfigManager;
+import io.github.blockneko11.nextconfig.holder.ConfigHolder;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
+import io.github.blockneko11.nextconfig.source.FileConfigSource;
+import io.github.blockneko11.nextconfig.throwable.ConfigException;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 public final class Example {
-    public static void memory() throws Exception {
-        MemoryConfigManager<ExampleConfig> manager = new MemoryConfigManager<>(ExampleConfig.class);
-
-        // before load
-        System.out.println(manager.get());
-
-        // load
-        manager.load();
-        ExampleConfig config = manager.get();
-        System.out.println(config.a_boolean);
-        System.out.println(config.an_int);
-        System.out.println(config.a_string);
-        System.out.println(config.a_double);
-        System.out.println(config.a_list);
-        System.out.println(config.a_map);
-        System.out.println(config.ignored_field);
-        System.out.println(config.b_string);
-
-        // save
-        manager.save();
-        System.out.println(manager.get());
-    }
-
-    public static void file(ConfigSerializer serializer, String extension) throws IOException {
+    public static void file(ConfigSerializer serializer, String extension) throws ConfigException {
         File f = new File("run", "config." + extension);
 
-        FileConfigManager<ExampleConfig> manager = new FileConfigManager<>(
+        ConfigHolder<ExampleConfig> holder = new ConfigHolder<>(
                 ExampleConfig.class,
-                serializer,
-                f
+                new FileConfigSource(f),
+                serializer
         );
 
         // before load
-        System.out.println(manager.get());
+        System.out.println(holder.getConfig());
 
         // load
-        manager.load();
-        ExampleConfig config1 = manager.get();
+        holder.load();
+        ExampleConfig config1 = holder.getConfig();
         System.out.println(config1.a_boolean);
         System.out.println(config1.an_int);
         System.out.println(config1.a_string);
@@ -56,6 +33,8 @@ public final class Example {
         System.out.println(config1.a_map);
         System.out.println(config1.ignored_field);
         System.out.println(config1.b_string);
+        System.out.println(config1.a_null);
+        System.out.println(config1.a_enum);
 
         config1.a_boolean = false;
         config1.an_int = 114514;
@@ -65,13 +44,16 @@ public final class Example {
         config1.a_map = new LinkedHashMap<>();
         config1.a_map.put("key", "value");
         config1.ignored_field = "This field will not be ignored";
+        config1.b_string = "This string will not be serialized as 'b_string'";
+        config1.a_null = null;
+        config1.a_enum = ExampleConfig.State.OFF;
 
         // save
-        manager.save();
+        holder.save();
 
         // reload
-        manager.load();
-        ExampleConfig config2 = manager.get();
+        holder.load();
+        ExampleConfig config2 = holder.getConfig();
         System.out.println(config2.a_boolean);
         System.out.println(config2.an_int);
         System.out.println(config2.a_string);
@@ -80,7 +62,9 @@ public final class Example {
         System.out.println(config2.a_map);
         System.out.println(config2.ignored_field);
         System.out.println(config2.b_string);
+        System.out.println(config2.a_null);
+        System.out.println(config2.a_enum);
 
-        manager.save();
+        holder.save();
     }
 }
