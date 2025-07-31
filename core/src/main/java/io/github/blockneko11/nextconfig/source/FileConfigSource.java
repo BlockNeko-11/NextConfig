@@ -32,6 +32,10 @@ public class FileConfigSource implements ConfigSource {
     public String read() throws ConfigIOException {
         try {
             if (!Files.exists(this.file)) {
+                if (Files.notExists(this.file.getParent())) {
+                    Files.createDirectories(this.file.getParent());
+                }
+
                 Files.createFile(this.file);
             }
 
