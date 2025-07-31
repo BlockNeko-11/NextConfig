@@ -33,6 +33,8 @@ public final class ExampleConfig {
 
     public State a_enum = State.ON;
 
+    public Integer a_wrapped_int = 1;
+
     public enum State {
         ON, OFF
     }

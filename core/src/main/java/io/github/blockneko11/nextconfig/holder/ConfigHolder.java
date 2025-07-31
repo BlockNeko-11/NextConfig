@@ -11,6 +11,8 @@ import io.github.blockneko11.nextconfig.throwable.ConfigMappingException;
 import io.github.blockneko11.nextconfig.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -120,39 +122,45 @@ public class ConfigHolder<T> {
             Class<?> fType = f.getType();
 
             try {
-                if (fType.isPrimitive()) {
-                    if (fType == boolean.class) {
-                        f.setBoolean(instance, (boolean) value);
-                        continue;
-                    }
-
-                    if (fType == int.class) {
-                        f.setInt(instance, ((Number) value).intValue());
-                        continue;
-                    }
-
-                    if (fType == long.class) {
-                        f.setLong(instance, ((Number) value).longValue());
-                        continue;
-                    }
-
-                    if (fType == double.class) {
-                        f.setDouble(instance, ((Number) value).doubleValue());
-                        continue;
-                    }
-                }
-
-                if (fType == String.class) {
-                    f.set(instance, value);
+                if (fType == boolean.class) {
+                    f.setBoolean(instance, (boolean) value);
                     continue;
                 }
 
-                if (fType == List.class) {
-                    f.set(instance, value);
+                if (fType == int.class) {
+                    f.setInt(instance, ((Number) value).intValue());
                     continue;
                 }
 
-                if (fType == Map.class) {
+                if (fType == long.class) {
+                    f.setLong(instance, ((Number) value).longValue());
+                    continue;
+                }
+
+                if (fType == double.class) {
+                    f.setDouble(instance, ((Number) value).doubleValue());
+                    continue;
+                }
+
+                if (fType == Integer.class) {
+                    f.set(instance, ((Number) value).intValue());
+                    continue;
+                }
+
+                if (fType == Long.class) {
+                    f.set(instance, ((Number) value).longValue());
+                    continue;
+                }
+
+                if (fType == Double.class) {
+                    f.set(instance, ((Number) value).doubleValue());
+                    continue;
+                }
+
+                if (fType == Boolean.class ||
+                        fType == String.class ||
+                        fType == List.class ||
+                        fType == Map.class) {
                     f.set(instance, value);
                     continue;
                 }
