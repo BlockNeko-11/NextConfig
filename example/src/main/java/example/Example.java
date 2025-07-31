@@ -2,6 +2,7 @@ package example;
 
 import io.github.blockneko11.nextconfig.manager.FileConfigManager;
 import io.github.blockneko11.nextconfig.manager.MemoryConfigManager;
+import io.github.blockneko11.nextconfig.option.FileConfigOptions;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 
 import java.io.File;
@@ -27,6 +28,7 @@ public final class Example {
         System.out.println(config.a_map);
         System.out.println(config.ignored_field);
         System.out.println(config.b_string);
+        System.out.println(config.a_null);
 
         // save
         manager.save();
@@ -42,6 +44,8 @@ public final class Example {
                 f
         );
 
+        manager.setOptions(FileConfigOptions.loadFromClasspath());
+
         // before load
         System.out.println(manager.get());
 
@@ -56,6 +60,7 @@ public final class Example {
         System.out.println(config1.a_map);
         System.out.println(config1.ignored_field);
         System.out.println(config1.b_string);
+        System.out.println(config1.a_null);
 
         config1.a_boolean = false;
         config1.an_int = 114514;
@@ -80,6 +85,7 @@ public final class Example {
         System.out.println(config2.a_map);
         System.out.println(config2.ignored_field);
         System.out.println(config2.b_string);
+        System.out.println(config2.a_null);
 
         manager.save();
     }

@@ -1,7 +1,8 @@
 package io.github.blockneko11.nextconfig.util;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class FileUtils {
@@ -23,19 +24,7 @@ public final class FileUtils {
             return "";
         }
 
-        StringBuilder sb = new StringBuilder();
-
-        try (FileInputStream is = new FileInputStream(file);
-             InputStreamReader sr = new InputStreamReader(is, StandardCharsets.UTF_8);
-             BufferedReader br = new BufferedReader(sr)) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                sb.append(line).append(System.lineSeparator());
-            }
-        }
-
-        return sb.toString();
+        return IOUtils.read(Files.newInputStream(file.toPath()));
     }
 
     public static void write(String path, String text) throws IOException {
@@ -55,13 +44,7 @@ public final class FileUtils {
             file.createNewFile();
         }
 
-        try (FileOutputStream os = new FileOutputStream(file);
-             OutputStreamWriter sw = new OutputStreamWriter(os, StandardCharsets.UTF_8);
-             BufferedWriter bw = new BufferedWriter(sw)) {
-            bw.write(text);
-            bw.newLine();
-            bw.flush();
-        }
+        IOUtils.write(Files.newOutputStream(file.toPath()), text);
     }
 
     private FileUtils() {

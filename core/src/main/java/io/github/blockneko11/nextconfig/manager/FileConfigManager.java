@@ -10,6 +10,7 @@ import io.github.blockneko11.nextconfig.util.ReflectionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -38,18 +39,18 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
     public void load() throws IOException {
         String text = FileUtils.read(this.file);
         Map<String, Object> map = this.serializer.parse(text);
-        this.set(toObject(map));
+        this.set(toObject(this.clazz, map));
     }
 
     @Override
     public void save() throws IOException {
-        Map<String, Object> map = this.toMap();
+        Map<String, Object> map = toMap(this.clazz, this.get());
         String text = this.serializer.serialize(map);
         FileUtils.write(this.file, text);
     }
 
-    private T toObject(Map<String, Object> map) {
-        T instance = ReflectionUtils.newInstance(this.clazz);
+    private static <T> T toObject(Class<T> clazz, Map<String, Object> map) {
+        T instance = ReflectionUtils.newInstance(clazz);
 
         if (instance == null) {
             return null;
@@ -59,7 +60,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
             return instance;
         }
 
-        for (Field f : this.clazz.getDeclaredFields()) {
+        for (Field f : clazz.getDeclaredFields()) {
             // annotation
             if (f.isAnnotationPresent(PropertyIgnored.class)) {
                 continue;
@@ -67,16 +68,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
 
             // modifier
             int mod = f.getModifiers();
-            boolean hasAnyIgnoredModifiers = false;
-
-            for (int i : this.options.ignoreModifiers) {
-                if ((mod & i) != 0) {
-                    hasAnyIgnoredModifiers = true;
-                    break;
-                }
-            }
-
-            if (hasAnyIgnoredModifiers) {
+            if (Modifier.isStatic(mod) || Modifier.isFinal(mod) || Modifier.isTransient(mod)) {
                 continue;
             }
 
@@ -89,14 +81,10 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
             PropertyName sName = f.getAnnotation(PropertyName.class);
             String name = sName != null ? sName.value() : f.getName();
 
-            if (this.options.parse_nameIgnoreCase) {
-                name = name.toLowerCase();
-            }
-
             // query & set
-            Object o = map.get(name);
+            Object value = map.get(name);
 
-            if (o == null) {
+            if (value == null) {
                 continue;
             }
 
@@ -106,46 +94,46 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
             try {
                 if (fType.isPrimitive()) {
                     if (fType == boolean.class) {
-                        f.setBoolean(instance, (boolean) o);
+                        f.setBoolean(instance, (boolean) value);
                         continue;
                     }
 
                     if (fType == int.class) {
-                        f.setInt(instance, ((Number) o).intValue());
+                        f.setInt(instance, ((Number) value).intValue());
                         continue;
                     }
 
                     if (fType == long.class) {
-                        f.setLong(instance, ((Number) o).longValue());
+                        f.setLong(instance, ((Number) value).longValue());
                         continue;
                     }
 
                     if (fType == double.class) {
-                        f.setDouble(instance, ((Number) o).doubleValue());
+                        f.setDouble(instance, ((Number) value).doubleValue());
                         continue;
                     }
                 }
 
                 // string
                 if (fType == String.class) {
-                    f.set(instance, o);
+                    f.set(instance, value);
                     continue;
                 }
 
                 // list
                 if (fType == List.class) {
-                    f.set(instance, o);
+                    f.set(instance, value);
                     continue;
                 }
 
                 // map
                 if (fType == Map.class) {
-                    f.set(instance, o);
+                    f.set(instance, value);
                     continue;
                 }
 
-                // objects (WIP)
-                throw new UnsupportedOperationException("Objects are not supported yet.");
+                Object o = toObject(fType, (Map<String, Object>) value);
+                f.set(instance, o);
             } catch (IllegalAccessException ignored) {
             }
         }
@@ -153,13 +141,13 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
         return instance;
     }
 
-    private Map<String, Object> toMap() {
-        if (!this.isPresent()) {
+    private static <T> Map<String, Object> toMap(Class<T> clazz, T instance) {
+        if (instance == null) {
             return Collections.emptyMap();
         }
 
         Map<String, Object> map = new LinkedHashMap<>();
-        for (Field f : this.clazz.getDeclaredFields()) {
+        for (Field f : clazz.getDeclaredFields()) {
             // annotation
             if (f.isAnnotationPresent(PropertyIgnored.class)) {
                 continue;
@@ -167,16 +155,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
 
             // modifier
             int mod = f.getModifiers();
-            boolean hasAnyIgnoredModifiers = false;
-
-            for (int i : this.options.ignoreModifiers) {
-                if ((mod & i) != 0) {
-                    hasAnyIgnoredModifiers = true;
-                    break;
-                }
-            }
-
-            if (hasAnyIgnoredModifiers) {
+            if (Modifier.isStatic(mod) || Modifier.isFinal(mod) || Modifier.isTransient(mod)) {
                 continue;
             }
 
@@ -191,12 +170,7 @@ public class FileConfigManager<T extends Config> extends ConfigManager<T> {
 
             // put
             try {
-                Object value = f.get(this.get());
-
-                if (value == null && this.options.serialize_ignoreNullValues) {
-                    continue;
-                }
-
+                Object value = f.get(instance);
                 map.put(name, value);
             } catch (IllegalAccessException ignored) {
             }

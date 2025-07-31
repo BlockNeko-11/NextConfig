@@ -28,6 +28,8 @@ public final class ExampleConfig implements Config {
     @PropertyName("str_b")
     public String b_string = "This string will be serialized as 'str_b'";
 
+    public String a_null = null;
+
     public ExampleConfig() {
         this.a_map = new LinkedHashMap<>();
         this.a_map.put("key1", "value1");
