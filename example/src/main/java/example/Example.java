@@ -1,5 +1,6 @@
 package example;
 
+import example.model.User;
 import io.github.blockneko11.nextconfig.holder.ConfigHolder;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 import io.github.blockneko11.nextconfig.source.FileConfigSource;
@@ -8,6 +9,7 @@ import io.github.blockneko11.nextconfig.throwable.ConfigException;
 import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 
 public final class Example {
     public static void file(ConfigSerializer serializer, String extension) throws ConfigException {
@@ -40,6 +42,8 @@ public final class Example {
         System.out.println(config1.a_null);
         System.out.println(config1.a_enum);
         System.out.println(config1.a_wrapped_int);
+        System.out.println(config1.a_optional);
+        System.out.println(config1.a_user);
 
         config1.a_boolean = false;
         config1.an_int = 114514;
@@ -53,6 +57,9 @@ public final class Example {
         config1.a_null = null;
         config1.a_enum = ExampleConfig.State.OFF;
         config1.a_wrapped_int = 3;
+        config1.a_optional = Optional.empty();
+        config1.a_user = new User();
+        config1.a_user.setName("Jeb_");
 
         // save
         holder.save();
@@ -71,6 +78,8 @@ public final class Example {
         System.out.println(config2.a_null);
         System.out.println(config2.a_enum);
         System.out.println(config2.a_wrapped_int);
+        System.out.println(config2.a_optional);
+        System.out.println(config2.a_user);
 
         holder.save();
     }

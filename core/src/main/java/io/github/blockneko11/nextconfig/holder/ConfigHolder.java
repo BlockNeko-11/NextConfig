@@ -1,8 +1,10 @@
 package io.github.blockneko11.nextconfig.holder;
 
 import io.github.blockneko11.nextconfig.annotation.Config;
-import io.github.blockneko11.nextconfig.annotation.entry.EntryIgnored;
-import io.github.blockneko11.nextconfig.annotation.entry.EntryName;
+import io.github.blockneko11.nextconfig.annotation.entry.Ignored;
+import io.github.blockneko11.nextconfig.annotation.entry.Mapper;
+import io.github.blockneko11.nextconfig.annotation.entry.Name;
+import io.github.blockneko11.nextconfig.entry.mapper.EntryMapper;
 import io.github.blockneko11.nextconfig.option.ConfigOptions;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 import io.github.blockneko11.nextconfig.source.ConfigSource;
@@ -11,12 +13,7 @@ import io.github.blockneko11.nextconfig.throwable.ConfigMappingException;
 import io.github.blockneko11.nextconfig.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConfigHolder<T> {
     private final Class<T> clazz;
@@ -88,7 +85,7 @@ public class ConfigHolder<T> {
         }
 
         for (Field f : clazz.getDeclaredFields()) {
-            if (f.isAnnotationPresent(EntryIgnored.class)) {
+            if (f.isAnnotationPresent(Ignored.class)) {
                 continue;
             }
 
@@ -106,7 +103,7 @@ public class ConfigHolder<T> {
                 continue;
             }
 
-            EntryName s = f.getAnnotation(EntryName.class);
+            Name s = f.getAnnotation(Name.class);
             String key = s != null ? s.value() : f.getName();
 
             if (!f.isAccessible()) {
@@ -114,14 +111,17 @@ public class ConfigHolder<T> {
             }
 
             Object value = map.get(key);
-
-            if (value == null) {
-                continue;
-            }
-
             Class<?> fType = f.getType();
 
             try {
+                if (value == null) {
+                    if (fType == Optional.class) {
+                        f.set(instance, Optional.empty());
+                    }
+
+                    continue;
+                }
+
                 if (fType == boolean.class) {
                     f.setBoolean(instance, (boolean) value);
                     continue;
@@ -170,6 +170,23 @@ public class ConfigHolder<T> {
                     continue;
                 }
 
+                if (fType == Optional.class) {
+                    f.set(instance, Optional.of(value));
+                    continue;
+                }
+
+                Mapper m = f.getAnnotation(Mapper.class);
+                if (m != null) {
+                    EntryMapper<?> mapper = ReflectionUtils.newInstance(m.value());
+
+                    if (mapper == null) {
+                        throw new ConfigMappingException("Mapper " + m.value().getCanonicalName() + " is not found");
+                    }
+
+                    f.set(instance, mapper.toEntry(value));
+                    continue;
+                }
+
                 Object o = mapToObject(fType, (Map<String, Object>) value, options);
                 f.set(instance, o);
             } catch (IllegalAccessException e) {
@@ -188,7 +205,7 @@ public class ConfigHolder<T> {
 
         Map<String, Object> map = new LinkedHashMap<>();
         for (Field f : clazz.getDeclaredFields()) {
-            if (f.isAnnotationPresent(EntryIgnored.class)) {
+            if (f.isAnnotationPresent(Ignored.class)) {
                 continue;
             }
 
@@ -206,7 +223,7 @@ public class ConfigHolder<T> {
                 continue;
             }
 
-            EntryName s = f.getAnnotation(EntryName.class);
+            Name s = f.getAnnotation(Name.class);
             String key = s != null ? s.value() : f.getName();
 
             if (!f.isAccessible()) {
@@ -217,7 +234,25 @@ public class ConfigHolder<T> {
 
             try {
                 if (fType.isEnum()) {
-                    map.put(key, ((Enum<?>) f.get(object)).toString());
+                    map.put(key, f.get(object).toString());
+                    continue;
+                }
+
+                if (fType == Optional.class) {
+                    Optional<?> optional = (Optional<?>) f.get(object);
+                    map.put(key, optional.orElse(null));
+                    continue;
+                }
+
+                Mapper m = f.getAnnotation(Mapper.class);
+                if (m != null) {
+                    EntryMapper mapper = ReflectionUtils.newInstance(m.value());
+
+                    if (mapper == null) {
+                        throw new ConfigMappingException("Mapper " + m.value().getName() + " is not found");
+                    }
+
+                    map.put(key, mapper.toProperty(f.get(object)));
                     continue;
                 }
 
