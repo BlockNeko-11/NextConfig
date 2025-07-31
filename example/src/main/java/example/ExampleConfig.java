@@ -1,5 +1,6 @@
 package example;
 
+import io.github.blockneko11.nextconfig.annotation.Config;
 import io.github.blockneko11.nextconfig.annotation.EntryIgnored;
 import io.github.blockneko11.nextconfig.annotation.EntryName;
 
@@ -8,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@Config
 public final class ExampleConfig {
     public boolean a_boolean = true;
 
