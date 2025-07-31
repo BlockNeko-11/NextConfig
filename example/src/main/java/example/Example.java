@@ -1,6 +1,5 @@
 package example;
 
-import io.github.blockneko11.nextconfig.option.FileConfigOptions;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 
 import java.io.File;
