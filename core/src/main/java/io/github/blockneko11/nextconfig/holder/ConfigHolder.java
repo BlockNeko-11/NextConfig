@@ -1,8 +1,8 @@
 package io.github.blockneko11.nextconfig.holder;
 
 import io.github.blockneko11.nextconfig.annotation.Config;
-import io.github.blockneko11.nextconfig.annotation.EntryIgnored;
-import io.github.blockneko11.nextconfig.annotation.EntryName;
+import io.github.blockneko11.nextconfig.annotation.entry.EntryIgnored;
+import io.github.blockneko11.nextconfig.annotation.entry.EntryName;
 import io.github.blockneko11.nextconfig.option.ConfigOptions;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 import io.github.blockneko11.nextconfig.source.ConfigSource;

@@ -1,8 +1,8 @@
 package example;
 
 import io.github.blockneko11.nextconfig.annotation.Config;
-import io.github.blockneko11.nextconfig.annotation.EntryIgnored;
-import io.github.blockneko11.nextconfig.annotation.EntryName;
+import io.github.blockneko11.nextconfig.annotation.entry.EntryIgnored;
+import io.github.blockneko11.nextconfig.annotation.entry.EntryName;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
