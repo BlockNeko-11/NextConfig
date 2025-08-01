@@ -21,6 +21,12 @@ public class User {
     }
 
     public static final class UserMapper implements EntryMapper<User> {
+        @NotNull
+        @Override
+        public Class<User> getEntryType() {
+            return User.class;
+        }
+
         @Override
         public User toEntry(@NotNull Object property) {
             Map<String, Object> map = (Map<String, Object>) property;
@@ -29,7 +35,6 @@ public class User {
             return user;
         }
 
-        @NotNull
         @Override
         public Object toProperty(User entry) {
             Map<String, Object> map = new LinkedHashMap<>();

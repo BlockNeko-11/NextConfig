@@ -2,33 +2,39 @@ package io.github.blockneko11.nextconfig.holder;
 
 import io.github.blockneko11.nextconfig.annotation.Config;
 import io.github.blockneko11.nextconfig.annotation.entry.Ignored;
-import io.github.blockneko11.nextconfig.annotation.entry.Mapper;
+import io.github.blockneko11.nextconfig.annotation.entry.Name;
 import io.github.blockneko11.nextconfig.entry.mapper.EntryMapper;
+import io.github.blockneko11.nextconfig.properties.ConfigProperties;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 import io.github.blockneko11.nextconfig.source.ConfigSource;
 import io.github.blockneko11.nextconfig.throwable.ConfigException;
 import io.github.blockneko11.nextconfig.throwable.ConfigMappingException;
 import io.github.blockneko11.nextconfig.util.ReflectionUtils;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class ConfigHolder<T> {
     private final Class<T> clazz;
     private final ConfigSource source;
     private final ConfigSerializer serializer;
-    private final Map<Field, EntryData> entryCache = new HashMap<>();
+    private final ConfigProperties props;
 
     public ConfigHolder(Class<T> clazz,
                         ConfigSource source,
-                        ConfigSerializer serializer) {
+                        ConfigSerializer serializer,
+                        ConfigProperties props) {
         checkClass(clazz);
         this.clazz = clazz;
         this.source = source;
         this.serializer = serializer;
-        this.scanEntries();
+        this.props = props;
+    }
+
+    public ConfigHolder(Class<T> clazz,
+                        ConfigSource source,
+                        ConfigSerializer serializer) {
+        this(clazz, source, serializer, new ConfigProperties());
     }
 
     private static void checkClass(Class<?> clazz) {
@@ -36,12 +42,6 @@ public class ConfigHolder<T> {
             throw new IllegalArgumentException("Class " +
                     clazz.getCanonicalName() +
                     " should be annotated with @Config");
-        }
-    }
-
-    private void scanEntries() {
-        for (Field f : this.clazz.getDeclaredFields()) {
-            this.entryCache.put(f, new EntryData(f));
         }
     }
 
@@ -62,16 +62,16 @@ public class ConfigHolder<T> {
     public void load() throws ConfigException {
         String text = this.source.read();
         Map<String, Object> map = this.serializer.parse(text);
-        this.config = mapToObject(this.clazz, map, this.entryCache);
+        this.config = mapToObject(this.clazz, map, this.props);
     }
 
     public void save() throws ConfigException {
-        Map<String, Object> map = objectToMap(this.clazz, this.config, this.entryCache);
+        Map<String, Object> map = objectToMap(this.clazz, this.config, this.props);
         String text = this.serializer.serialize(map);
         this.source.write(text);
     }
 
-    private static <T> T mapToObject(Class<T> clazz, Map<String, Object> map, Map<Field, EntryData> entries)
+    private static <T> T mapToObject(Class<T> clazz, Map<String, Object> map, ConfigProperties props)
             throws ConfigMappingException {
         T instance = ReflectionUtils.newInstance(clazz);
         if (instance == null) {
@@ -83,28 +83,26 @@ public class ConfigHolder<T> {
         }
 
         for (Field f : clazz.getDeclaredFields()) {
-            EntryData data = entries.get(f);
-            Map<Class<? extends Annotation>, Annotation> annotations = data.getAnnotations();
-            if (annotations.containsKey(Ignored.class)) {
+            if (f.isAnnotationPresent(Ignored.class)) {
                 continue;
             }
 
-            int mod = data.getModifiers();
-            if (Modifier.isFinal(mod) || Modifier.isTransient(mod)) {
+            if (props.hasIgnoredModifier(f.getModifiers())) {
                 continue;
             }
 
-            String key = data.getKey();
-            Class<?> type = data.getType();
+            Name s = f.getAnnotation(Name.class);
+            String key = s == null ? f.getName() : s.value();
+            Class<?> type = f.getType();
 
             if (!f.isAccessible()) {
                 f.setAccessible(true);
             }
 
-            Object value = map.get(key);
+            Object property = map.get(key);
 
             try {
-                if (value == null) {
+                if (property == null) {
                     if (type == Optional.class) {
                         f.set(instance, Optional.empty());
                     }
@@ -117,37 +115,37 @@ public class ConfigHolder<T> {
                 }
 
                 if (type == boolean.class) {
-                    f.setBoolean(instance, (boolean) value);
+                    f.setBoolean(instance, (boolean) property);
                     continue;
                 }
 
                 if (type == int.class) {
-                    f.setInt(instance, ((Number) value).intValue());
+                    f.setInt(instance, ((Number) property).intValue());
                     continue;
                 }
 
                 if (type == long.class) {
-                    f.setLong(instance, ((Number) value).longValue());
+                    f.setLong(instance, ((Number) property).longValue());
                     continue;
                 }
 
                 if (type == double.class) {
-                    f.setDouble(instance, ((Number) value).doubleValue());
+                    f.setDouble(instance, ((Number) property).doubleValue());
                     continue;
                 }
 
                 if (type == Integer.class) {
-                    f.set(instance, ((Number) value).intValue());
+                    f.set(instance, ((Number) property).intValue());
                     continue;
                 }
 
                 if (type == Long.class) {
-                    f.set(instance, ((Number) value).longValue());
+                    f.set(instance, ((Number) property).longValue());
                     continue;
                 }
 
                 if (type == Double.class) {
-                    f.set(instance, ((Number) value).doubleValue());
+                    f.set(instance, ((Number) property).doubleValue());
                     continue;
                 }
 
@@ -155,36 +153,34 @@ public class ConfigHolder<T> {
                         type == String.class ||
                         type == List.class ||
                         type == Map.class) {
-                    f.set(instance, value);
+                    f.set(instance, property);
                     continue;
                 }
 
                 if (type.isEnum()) {
-                    f.set(instance, Enum.valueOf((Class<Enum>) type, (String) value));
+                    f.set(instance, Enum.valueOf((Class<Enum>) type, (String) property));
                     continue;
                 }
 
                 if (type == Optional.class) {
-                    f.set(instance, Optional.of(value));
+                    f.set(instance, Optional.of(property));
                     continue;
                 }
 
-                if (annotations.containsKey(Mapper.class)) {
-                    Class<? extends EntryMapper<?>> mapperClass = ((Mapper) annotations.get(Mapper.class))
-                            .value();
-                    EntryMapper<?> mapper = ReflectionUtils.newInstance(mapperClass);
+                if (props.isMapperRegistered(type)) {
+                    EntryMapper<?> mapper = props.getMapper(type);
                     if (mapper == null) {
-                        throw new ConfigMappingException("Mapper " +
-                                mapperClass.getCanonicalName() +
-                                " is not found");
+                        throw new ConfigMappingException("Type " +
+                                type.getCanonicalName() +
+                                " has no registered mappers");
                     }
 
-                    f.set(instance, mapper.toEntry(value));
+                    f.set(instance, mapper.toEntry(property));
                     continue;
                 }
 
-                Object o = mapToObject(type, (Map<String, Object>) value, entries);
-                f.set(instance, o);
+                Object entry = mapToObject(type, (Map<String, Object>) property, props);
+                f.set(instance, entry);
             } catch (IllegalAccessException e) {
                 throw new ConfigMappingException(e);
             }
@@ -193,7 +189,7 @@ public class ConfigHolder<T> {
         return instance;
     }
 
-    private static Map<String, Object> objectToMap(Class<?> clazz, Object object, Map<Field, EntryData> entries)
+    private static Map<String, Object> objectToMap(Class<?> clazz, Object object, ConfigProperties props)
             throws ConfigMappingException {
         if (object == null) {
             return Collections.emptyMap();
@@ -201,19 +197,17 @@ public class ConfigHolder<T> {
 
         Map<String, Object> map = new LinkedHashMap<>();
         for (Field f : clazz.getDeclaredFields()) {
-            EntryData data = entries.get(f);
-            Map<Class<? extends Annotation>, Annotation> annotations = data.getAnnotations();
-            if (annotations.containsKey(Ignored.class)) {
+            if (f.isAnnotationPresent(Ignored.class)) {
                 continue;
             }
 
-            int mod = data.getModifiers();
-            if (Modifier.isFinal(mod) || Modifier.isTransient(mod)) {
+            if (props.hasIgnoredModifier(f.getModifiers())) {
                 continue;
             }
 
-            String key = data.getKey();
-            Class<?> type = data.getType();
+            Name s = f.getAnnotation(Name.class);
+            String key = s == null ? f.getName() : s.value();
+            Class<?> type = f.getType();
 
             if (!f.isAccessible()) {
                 f.setAccessible(true);
@@ -224,32 +218,64 @@ public class ConfigHolder<T> {
                     throw new ConfigMappingException("Array is not supported");
                 }
 
+                if (type == boolean.class) {
+                    map.put(key, f.getBoolean(object));
+                    continue;
+                }
+
+                if (type == int.class) {
+                    map.put(key, f.getInt(object));
+                    continue;
+                }
+
+                if (type == long.class) {
+                    map.put(key, f.getLong(object));
+                    continue;
+                }
+
+                if (type == double.class) {
+                    map.put(key, f.getDouble(object));
+                    continue;
+                }
+
+                Object entry = f.get(object);
+
+                if (type == Boolean.class ||
+                        type == Integer.class ||
+                        type == Long.class ||
+                        type == Double.class ||
+                        type == String.class ||
+                        type == List.class ||
+                        type == Map.class) {
+                    map.put(key, entry);
+                    continue;
+                }
+
                 if (type.isEnum()) {
-                    map.put(key, f.get(object).toString());
+                    map.put(key, entry.toString());
                     continue;
                 }
 
                 if (type == Optional.class) {
-                    Optional<?> optional = (Optional<?>) f.get(object);
+                    Optional<?> optional = (Optional<?>) entry;
                     map.put(key, optional.orElse(null));
                     continue;
                 }
 
-                if (annotations.containsKey(Mapper.class)) {
-                    Class<? extends EntryMapper<?>> mapperClass = ((Mapper) annotations.get(Mapper.class))
-                            .value();
-                    EntryMapper mapper = ReflectionUtils.newInstance(mapperClass);
+                if (props.isMapperRegistered(type)) {
+                    EntryMapper mapper = props.getMapper(type);
                     if (mapper == null) {
-                        throw new ConfigMappingException("Mapper " +
-                                mapperClass.getCanonicalName() +
-                                " is not found");
+                        throw new ConfigMappingException("Type " +
+                                type.getCanonicalName() +
+                                " has no registered mappers");
                     }
 
-                    map.put(key, mapper.toProperty(f.get(object)));
+                    map.put(key, mapper.toProperty(entry));
                     continue;
                 }
 
-                map.put(key, f.get(object));
+                Object property = objectToMap(type, entry, props);
+                map.put(key, property);
             } catch (IllegalAccessException e) {
                 throw new ConfigMappingException(e);
             }

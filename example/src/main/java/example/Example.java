@@ -2,6 +2,7 @@ package example;
 
 import example.model.User;
 import io.github.blockneko11.nextconfig.holder.ConfigHolder;
+import io.github.blockneko11.nextconfig.properties.ConfigProperties;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 import io.github.blockneko11.nextconfig.source.FileConfigSource;
 import io.github.blockneko11.nextconfig.throwable.ConfigException;
@@ -19,10 +20,14 @@ public final class Example {
             f.delete();
         }
 
+        ConfigProperties props = new ConfigProperties();
+        props.registerMapper(new User.UserMapper());
+
         ConfigHolder<ExampleConfig> holder = new ConfigHolder<>(
                 ExampleConfig.class,
                 new FileConfigSource(f),
-                serializer
+                serializer,
+                props
         );
 
         // before load

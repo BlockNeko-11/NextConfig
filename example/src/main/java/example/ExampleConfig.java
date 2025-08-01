@@ -3,7 +3,6 @@ package example;
 import example.model.User;
 import io.github.blockneko11.nextconfig.annotation.Config;
 import io.github.blockneko11.nextconfig.annotation.entry.Ignored;
-import io.github.blockneko11.nextconfig.annotation.entry.Mapper;
 import io.github.blockneko11.nextconfig.annotation.entry.Name;
 
 import java.util.*;
@@ -40,7 +39,6 @@ public final class ExampleConfig {
 
     public Optional<String> a_optional = Optional.of("This is a Optional instance");
 
-    @Mapper(User.UserMapper.class)
     public User a_user = new User();
 
     public ExampleConfig() {
