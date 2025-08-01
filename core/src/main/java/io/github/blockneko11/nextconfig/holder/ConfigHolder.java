@@ -220,6 +220,10 @@ public class ConfigHolder<T> {
             }
 
             try {
+                if (type.isArray()) {
+                    throw new ConfigMappingException("Array is not supported");
+                }
+
                 if (type.isEnum()) {
                     map.put(key, f.get(object).toString());
                     continue;
