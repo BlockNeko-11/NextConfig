@@ -1,7 +1,6 @@
 package io.github.blockneko11.nextconfig.properties;
 
-import io.github.blockneko11.nextconfig.entry.mapper.BigDecimalMapper;
-import io.github.blockneko11.nextconfig.entry.mapper.BigIntegerMapper;
+import io.github.blockneko11.nextconfig.entry.mapper.DefaultMappers;
 import io.github.blockneko11.nextconfig.entry.mapper.EntryMapper;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,8 +49,8 @@ public class ConfigProperties {
     }
 
     public ConfigProperties() {
-        this.registerMapper(new BigDecimalMapper());
-        this.registerMapper(new BigIntegerMapper());
+        this.registerMapper(new DefaultMappers.BigDecimalMapper());
+        this.registerMapper(new DefaultMappers.BigIntegerMapper());
 
         this.registerIgnoredModifier(Modifier.FINAL);
         this.registerIgnoredModifier(Modifier.TRANSIENT);

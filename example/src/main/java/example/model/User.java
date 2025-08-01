@@ -1,6 +1,7 @@
 package example.model;
 
 import io.github.blockneko11.nextconfig.entry.mapper.EntryMapper;
+import io.github.blockneko11.nextconfig.throwable.ConfigMappingException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,7 +29,7 @@ public class User {
         }
 
         @Override
-        public User toEntry(@NotNull Object property) {
+        public User toEntry(@NotNull Object property) throws ConfigMappingException {
             Map<String, Object> map = (Map<String, Object>) property;
             User user = new User();
             user.name = (String) map.get("name");
@@ -36,7 +37,7 @@ public class User {
         }
 
         @Override
-        public Object toProperty(User entry) {
+        public Object toProperty(User entry) throws ConfigMappingException {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("name", entry.name);
             return map;
