@@ -1,4 +1,4 @@
-package io.github.blockneko11.nextconfig.annotation;
+package io.github.blockneko11.nextconfig.annotation.entry;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface EntryIgnored {
-    boolean value() default true;
+public @interface Name {
+    String value();
 }
