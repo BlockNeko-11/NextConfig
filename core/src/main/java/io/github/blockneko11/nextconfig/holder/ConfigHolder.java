@@ -5,7 +5,6 @@ import io.github.blockneko11.nextconfig.annotation.entry.Ignored;
 import io.github.blockneko11.nextconfig.annotation.entry.Mapper;
 import io.github.blockneko11.nextconfig.annotation.entry.Name;
 import io.github.blockneko11.nextconfig.entry.mapper.EntryMapper;
-import io.github.blockneko11.nextconfig.option.ConfigOptions;
 import io.github.blockneko11.nextconfig.serializer.ConfigSerializer;
 import io.github.blockneko11.nextconfig.source.ConfigSource;
 import io.github.blockneko11.nextconfig.throwable.ConfigException;
@@ -13,18 +12,18 @@ import io.github.blockneko11.nextconfig.throwable.ConfigMappingException;
 import io.github.blockneko11.nextconfig.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class ConfigHolder<T> {
     private final Class<T> clazz;
+
     private final ConfigSource source;
     private final ConfigSerializer serializer;
-    private final ConfigOptions options;
 
     public ConfigHolder(Class<T> clazz,
                         ConfigSource source,
-                        ConfigSerializer serializer,
-                        ConfigOptions options) {
+                        ConfigSerializer serializer) {
         if (!clazz.isAnnotationPresent(Config.class)) {
             throw new IllegalArgumentException("Class " +
                     clazz.getCanonicalName() +
@@ -34,13 +33,6 @@ public class ConfigHolder<T> {
         this.clazz = clazz;
         this.source = source;
         this.serializer = serializer;
-        this.options = options;
-    }
-
-    public ConfigHolder(Class<T> clazz,
-                        ConfigSource source,
-                        ConfigSerializer serializer) {
-        this(clazz, source, serializer, new ConfigOptions());
     }
 
     private T config;
@@ -55,25 +47,21 @@ public class ConfigHolder<T> {
 
     public void setConfig(T value) throws ConfigException {
         this.config = value;
-
-        if (this.options.autoSave) {
-            this.save();
-        }
     }
 
     public void load() throws ConfigException {
         String text = this.source.read();
         Map<String, Object> map = this.serializer.parse(text);
-        this.config = mapToObject(this.clazz, map, this.options);
+        this.config = mapToObject(this.clazz, map);
     }
 
     public void save() throws ConfigException {
-        Map<String, Object> map = objectToMap(this.clazz, this.config, this.options);
+        Map<String, Object> map = objectToMap(this.clazz, this.config);
         String text = this.serializer.serialize(map);
         this.source.write(text);
     }
 
-    private static <T> T mapToObject(Class<T> clazz, Map<String, Object> map, ConfigOptions options)
+    private static <T> T mapToObject(Class<T> clazz, Map<String, Object> map)
             throws ConfigMappingException {
         T instance = ReflectionUtils.newInstance(clazz);
         if (instance == null) {
@@ -90,16 +78,7 @@ public class ConfigHolder<T> {
             }
 
             int i = f.getModifiers();
-            boolean bl = false;
-
-            for (Integer mod : options.ignoreModifiers) {
-                if ((i & mod) != 0) {
-                    bl = true;
-                    break;
-                }
-            }
-
-            if (bl) {
+            if (Modifier.isFinal(i) || Modifier.isTransient(i)) {
                 continue;
             }
 
@@ -187,7 +166,7 @@ public class ConfigHolder<T> {
                     continue;
                 }
 
-                Object o = mapToObject(fType, (Map<String, Object>) value, options);
+                Object o = mapToObject(fType, (Map<String, Object>) value);
                 f.set(instance, o);
             } catch (IllegalAccessException e) {
                 throw new ConfigMappingException(e);
@@ -197,7 +176,7 @@ public class ConfigHolder<T> {
         return instance;
     }
 
-    private static Map<String, Object> objectToMap(Class<?> clazz, Object object, ConfigOptions options)
+    private static Map<String, Object> objectToMap(Class<?> clazz, Object object)
             throws ConfigMappingException {
         if (object == null) {
             return Collections.emptyMap();
@@ -210,16 +189,7 @@ public class ConfigHolder<T> {
             }
 
             int i = f.getModifiers();
-            boolean bl = false;
-
-            for (Integer mod : options.ignoreModifiers) {
-                if ((i & mod) != 0) {
-                    bl = true;
-                    break;
-                }
-            }
-
-            if (bl) {
+            if (Modifier.isFinal(i) || Modifier.isTransient(i)) {
                 continue;
             }
 
